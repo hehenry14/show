@@ -3,9 +3,8 @@ import os
 import json
 import logging
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine
 from .models import User, Product
-import importlib
 
 local_models = ['User', 'Product']
 
@@ -24,13 +23,6 @@ class Show:
         postgre_config = self.__get_cofig_postgres()
         postgres_location = f"postgresql://{postgre_config['user']}:{postgre_config['pass']}@{postgre_config['host']}/"
         self._engine = create_engine(postgres_location)
-
-        # if table does not exit then create
-        for model in local_models:
-            if not inspect(self._engine).has_table(model):
-                models = importlib.import_module('models.model')
-                table = getattr(models, model)
-                table.__table__.create(bind=self._engine, checkfirst=True)
 
 
     @staticmethod
@@ -53,7 +45,11 @@ class Show:
 
     def execute(self):
         channel = self._connection.channel()
-        channel.basic_consume(queue='in_stock', on_message_callback=self.callback, auto_ack=True)
+        channel.basic_consume(queue='in_stock', on_message_callback=self.callback)
+        try:
+            channel.start_consuming()
+        except KeyboardInterrupt:
+            channel.stop_consuming()
 
     def callback(self, ch, method, properties, body):
         # message looks like this '{"product_id": 1, "user_id": 1}' Then we will get the credentials and product site
@@ -70,7 +66,7 @@ class Show:
 
         self.purchase(user_config_row[0], product_config_row[0])
 
-    def purchase(self, user_config: dict, prodcut_config: dict):
+    def purchase(self, user_config: dict, product_config_row: dict):
         """
         This function will automatically purchase the item specified in the input message
         :return:
