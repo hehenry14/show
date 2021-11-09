@@ -4,7 +4,7 @@ import json
 import logging
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
-from .models import User, Product
+from .models import User, Product, UserInfo, ProductInfo
 
 local_models = ['User', 'Product']
 
@@ -66,9 +66,20 @@ class Show:
 
         self.purchase(user_config_row[0], product_config_row[0])
 
-    def purchase(self, user_config: dict, product_config_row: dict):
+    def purchase(self, user_config: dict, product_config: dict):
         """
         This function will automatically purchase the item specified in the input message
         :return:
         """
+        user_info = UserInfo(user_config)
+        product_info = ProductInfo(product_config)
+
+    def log_in(self, credentials: dict, product_info: ProductInfo):
+        """
+        This function logs user in.
+        :param credentials: the log in credentials from the user.
+        :param product_info: the ProductInfo with the given product id.
+        :return:
+        """
+        r = product_info.get_login_request(credentials)
         ...

@@ -1,6 +1,7 @@
 from sqlalchemy.orm import declarative_base
-from sqlalchemy import Column, Integer, String, Sequence, JSON, BigInteger
+from sqlalchemy import Column, Integer, String, Sequence, JSON, BigInteger, create_engine
 from sqlalchemy.schema import MetaData
+import os
 
 Base = declarative_base(metadata=MetaData(schema='public'))
 
@@ -19,6 +20,7 @@ class User(Base):
             'config': self.config
         }
 
+
 class Product(Base):
     __tablename__ = 'products'
     product_id_seq = Sequence('product_id_seq', metadata=Base.metadata)
@@ -30,4 +32,3 @@ class Product(Base):
             'id': self.id,
             'config': self.config
         }
-
